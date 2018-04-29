@@ -3,6 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Ignite.src.core.engine.parser;
+using Ignite.src.core.networkentities;
+using Ignite.src.core.engine.proccessor;
 
 // State object for reading client data asynchronously  
 public class StateObject {
@@ -16,11 +19,16 @@ public class StateObject {
     public StringBuilder sb = new StringBuilder();
 }
 
-public class AsynchronousSocketListener {
+public class AsyncEngine {
     // Thread signal.  
     public static ManualResetEvent allDone = new ManualResetEvent(false);
+    private static IgniteRequestParser requestParser;
+    private static IgniteResponseParser responseParser;
 
-    public AsynchronousSocketListener() {
+
+    public AsyncEngine() {
+        requestParser = new IgniteRequestParser();
+        responseParser = new IgniteResponseParser();
     }
 
     public static void StartListening() {
@@ -31,8 +39,14 @@ public class AsynchronousSocketListener {
         // The DNS name of the computer  
         // running the listener is "host.contoso.com".  
         IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-        IPAddress ipAddress = ipHostInfo.AddressList[0];
-        IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+        for (int i = 0; i < ipHostInfo.AddressList.Length; i++ ) {
+            Console.WriteLine("IpHostinfo {0}", ipHostInfo.AddressList[i]);
+        }
+        IPAddress ipAddress = ipHostInfo.AddressList[2];
+        Console.Write("Server running of ip {0}", ipAddress.MapToIPv4());
+
+    
+        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.212"), 11000);
 
         // Create a TCP/IP socket.  
         Socket listener = new Socket(ipAddress.AddressFamily,
@@ -105,6 +119,18 @@ public class AsynchronousSocketListener {
                 // client. Display it on the console.  
                 Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
                     content.Length, content);
+
+                IgniteRequest request = requestParser.Parse(content);
+            
+                Console.WriteLine("Parsed request {0}", request);
+                Proccessor proccessor = ProccessorFactory.getInstance();
+                Console.WriteLine("Generated proccessor {0}", proccessor);
+                IgniteResponse response = proccessor.proccess(request);
+
+                String rawResponse = responseParser.stringify(response);
+                Console.WriteLine("Raw response {0}", rawResponse);
+
+
                 // Echo the data back to the client.  
                 Send(handler, content);
             } else {
