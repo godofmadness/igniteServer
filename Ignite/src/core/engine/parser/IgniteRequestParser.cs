@@ -29,7 +29,7 @@ namespace Ignite.src.core.engine.parser {
             String rawHeaders = partials[1].Split(ParserConstants.REQUEST_HEADERS_DELIMETER)[0];
 
             Console.WriteLine("IgniteRequestParser@Parse | raw core meta part {0}, {1}, {2}", coreMetaPart[0], coreMetaPart[1], coreMetaPart[2]);
-            rawHeaders = rawHeaders.Substring(1, rawHeaders.Length - 1);
+           
             Console.WriteLine("IgniteRequestParser@Parse | headers part {0}", rawHeaders);
 
 
@@ -44,7 +44,7 @@ namespace Ignite.src.core.engine.parser {
 
 
             // if get request skip body parsing
-            if (!coreMetaPart[0].Equals(NetworkMethod.GET)) {
+            if (!coreMetaPart[0].Equals(HttpMethod.GET)) {
                 String rawBody = partials[1].Split(ParserConstants.REQUEST_HEADERS_DELIMETER)[1];
                 // no body
                 rawBody = rawBody.Split(ParserConstants.EOF)[0];

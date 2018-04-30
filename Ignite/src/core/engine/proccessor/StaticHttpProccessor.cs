@@ -20,7 +20,7 @@ namespace Ignite.src.core.engine.proccessor {
             // set response
 
 
-            return null;
+            return IgniteResponseFactory.getInstance();
         }
     }
 }

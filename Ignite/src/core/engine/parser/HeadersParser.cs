@@ -8,13 +8,13 @@ namespace Ignite.src.core.engine.parser
     {
 
 
-        private Dictionary<String, String> headers = new Dictionary<String, String>();
+     
         private String HEADERS_DELIMETER = "\n";
         private String KV_DELIMETER = ":";
 
         public override Dictionary<string, string> GetContainer()
         {
-            return headers;
+            return new Dictionary<String, String>();
         }
 
         public override string GetKVDelimeter()

@@ -34,7 +34,7 @@ namespace Ignite.src.core.engine.parser
             rawResponse.Append(ParserConstants.REQUEST_HEADERS_DELIMETER);
 
             // stringify body
-            rawResponse.Append(bodyParser.stringify(response.getBody()));
+            rawResponse.Append(response.getBody());
             rawResponse.Append(ParserConstants.EOF);
 
             return rawResponse.ToString();

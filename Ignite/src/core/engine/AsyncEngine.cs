@@ -6,6 +6,7 @@ using System.Threading;
 using Ignite.src.core.engine.parser;
 using Ignite.src.core.networkentities;
 using Ignite.src.core.engine.proccessor;
+using Ignite.src.core.engine.validator;
 
 // State object for reading client data asynchronously  
 public class StateObject {
@@ -90,9 +91,11 @@ public class AsyncEngine {
             new AsyncCallback(ReadCallback), state);
     }
 
+
+    
+
     public static void ReadCallback(IAsyncResult ar) {
         String content = String.Empty;
-
         // Retrieve the state object and the handler socket  
         // from the asynchronous state object.  
         StateObject state = (StateObject)ar.AsyncState;
@@ -101,41 +104,74 @@ public class AsyncEngine {
         // Read data from the client socket.   
         int bytesRead = handler.EndReceive(ar);
 
-        if (bytesRead > 0) {
-            // There  might be more data, so store the data received so far.  
-            state.sb.Append(Encoding.ASCII.GetString(
-                state.buffer, 0, bytesRead));
+        // catch every exception on server and send 500 if exception occured
+        try  {
 
-            // Check for end-of-file tag. If it is not there, read   
-            // more data.  
-            content = state.sb.ToString();
-            if (content.IndexOf("<EOF>") > -1) {
-                // All the data has been read from the   
-                // client. Display it on the console.  
-                Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                    content.Length, content);
+            if (bytesRead > 0) {
+                // There  might be more data, so store the data received so far.  
+                state.sb.Append(Encoding.ASCII.GetString(
+                    state.buffer, 0, bytesRead));
 
-                IgniteRequest request = requestParser.Parse(content);
-           
-            
-                Console.WriteLine("Parsed request {0}", request);
-                Proccessor proccessor = ProccessorFactory.getInstance();
-                Console.WriteLine("Generated proccessor {0}", proccessor);
-                IgniteResponse response = proccessor.proccess(request);
+                // Check for end-of-file tag. If it is not there, read   
+                // more data.  
+                content = state.sb.ToString();
+                if (content.IndexOf("<EOF>") > -1)  {
+                    // All the data has been read from the   
+                    // client. Display it on the console.  
+                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                        content.Length, content);
 
-                String rawResponse = responseParser.stringify(response);
-                Console.WriteLine("Raw response {0}", rawResponse);
+                    IgniteRequest request = requestParser.Parse(content);
+                    IgniteResponseStatus status = IgniteRequestValidatorService.validate(request);
+
+                    if (status.getCode() != HttpStatus.OK) {
+
+                        Console.WriteLine("AsyncEngine@ReadCallback | request not valid {0}:{1}", status.getCode(), status.getMessage());
+                        IgniteResponse failedResponse = IgniteResponseFactory.getInstance(status);
+                        String rawResponse = responseParser.stringify(failedResponse);
+
+                        Console.WriteLine("AsyncEngine@ReadCallback | raw response");
+                        Console.WriteLine(rawResponse);
+
+                        Send(handler, rawResponse);
 
 
-                // Echo the data back to the client.  
-                Send(handler, content);
-            } else {
-                // Not all data received. Get more.  
-                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
+                    } else {
+                        Console.WriteLine("AsyncEngine@ReadCallback | request valid");
+                        Console.WriteLine("AsyncEngine@ReadCallback | Parsed request {0}", request);
+                        Proccessor proccessor = ProccessorFactory.getInstance();
+                        IgniteResponse response = proccessor.proccess(request);
+
+                        String rawResponse = responseParser.stringify(response);
+
+                        Console.WriteLine("AsyncEngine@ReadCallback | raw response");
+                        Console.WriteLine(rawResponse);
+
+                        // Echo the data back to the client.  
+                        Send(handler, rawResponse);
+                    }
+
+                } else {
+                    // Not all data received. Get more.  
+                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReadCallback), state);
+                }
             }
+
+        } catch (Exception e) {
+            Console.WriteLine("AsyncEngine@ReadCallback | Server erorr occured {0}", e);
+            IgniteResponse failedResponse = IgniteResponseFactory.getInstance(new IgniteResponseStatus(HttpStatus.SERVER_ERROR, HttpStatus.SERVER_ERROR_MESSAGE));
+            String rawResponse = responseParser.stringify(failedResponse);
+
+            Console.WriteLine("AsyncEngine@ReadCallback | raw response");
+            Console.WriteLine(rawResponse);
+
+            Send(handler, rawResponse);
         }
     }
+
+
+
 
     private static void Send(Socket handler, String data) {
         // Convert the string data to byte data using ASCII encoding.  

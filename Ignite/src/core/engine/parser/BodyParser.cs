@@ -8,13 +8,13 @@ namespace Ignite.src.core.engine.parser
     class BodyParser : AbstractKVParser {
 
 
-        private Dictionary<String, String> body = new Dictionary<String, String>();
+       
         private String BODY_PARAMS_DELIMETER = "&";
         private String KV_DELIMETER = "=";
 
         public override Dictionary<string, string> GetContainer()
         {
-            return body;
+            return new Dictionary<String, String>();
         }
 
         public override string GetKVDelimeter()

@@ -7,19 +7,17 @@ namespace Ignite.src.core.networkentities
     class IgniteNetworkEntity
     {
         private String httpVersion;
-        private Dictionary<String, String> body;
         private Dictionary<String, String> headers;
 
-
-
-        public Dictionary<String, String> getBody()
+        public IgniteNetworkEntity(String version, Dictionary<String, String> headers)
         {
-            return body;
+            this.httpVersion = version;
+            this.headers = headers;
         }
 
-        public void setBody(Dictionary<String, String> body)
+        public IgniteNetworkEntity()
         {
-            this.body = body;
+
         }
 
         public Dictionary<String, String> getHeaders()
