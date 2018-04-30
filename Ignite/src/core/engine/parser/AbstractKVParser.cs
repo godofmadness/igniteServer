@@ -12,11 +12,16 @@ namespace Ignite.src.core.engine.parser
         public Dictionary<String, String> Parse(String rawBody) {
 
             var container = GetContainer();
+            if (rawBody.Length == 0) { 
+                return container;
+            }
 
             String[] bodyKV = rawBody.Split(GetMainDelimeter());
+ 
             for (int i = 0; i < bodyKV.Length; i++) {
-
                 String[] kv = bodyKV[i].Split(GetKVDelimeter());
+
+
                 container.Add(kv[0], kv[1]);
             }
 

@@ -22,14 +22,9 @@ public class StateObject {
 public class AsyncEngine {
     // Thread signal.  
     public static ManualResetEvent allDone = new ManualResetEvent(false);
-    private static IgniteRequestParser requestParser;
-    private static IgniteResponseParser responseParser;
+    private static IgniteRequestParser requestParser = new IgniteRequestParser();
+    private static IgniteResponseParser responseParser = new IgniteResponseParser();
 
-
-    public AsyncEngine() {
-        requestParser = new IgniteRequestParser();
-        responseParser = new IgniteResponseParser();
-    }
 
     public static void StartListening() {
         // Data buffer for incoming data.  
@@ -121,6 +116,7 @@ public class AsyncEngine {
                     content.Length, content);
 
                 IgniteRequest request = requestParser.Parse(content);
+           
             
                 Console.WriteLine("Parsed request {0}", request);
                 Proccessor proccessor = ProccessorFactory.getInstance();
