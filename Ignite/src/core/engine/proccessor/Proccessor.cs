@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Ignite.src.core.networkentities;
 
 namespace Ignite.src.core.engine.proccessor
@@ -8,6 +9,7 @@ namespace Ignite.src.core.engine.proccessor
     interface Proccessor
     {
 
-        IgniteResponse proccess(IgniteRequest request);
+
+        Task<IgniteResponse> proccess(IgniteRequest request);
     }
 }

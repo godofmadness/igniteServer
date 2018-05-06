@@ -94,7 +94,7 @@ public class AsyncEngine {
 
     
 
-    public static void ReadCallback(IAsyncResult ar) {
+    public async static void ReadCallback(IAsyncResult ar) {
         String content = String.Empty;
         // Retrieve the state object and the handler socket  
         // from the asynchronous state object.  
@@ -140,7 +140,7 @@ public class AsyncEngine {
                         Console.WriteLine("AsyncEngine@ReadCallback | request valid");
                         Console.WriteLine("AsyncEngine@ReadCallback | Parsed request {0}", request);
                         Proccessor proccessor = ProccessorFactory.getInstance();
-                        IgniteResponse response = proccessor.proccess(request);
+                        IgniteResponse response = await proccessor.proccess(request);
 
                         String rawResponse = responseParser.stringify(response);
 
