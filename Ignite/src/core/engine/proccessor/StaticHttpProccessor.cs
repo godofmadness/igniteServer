@@ -57,8 +57,8 @@ namespace Ignite.src.core.engine.proccessor {
 
                 // set MIME TYPE
                 String MIME = MIMEType.getMIMETypeByExtension(getFileExtensionByRoute(route));
-                response.getHeaders()[HttpHeaders.ContentLength] = file.Length.ToString();
-                response.getHeaders()[HttpHeaders.ContentType] = MIME; 
+                response.getHeaders()[HttpHeaders.ContentLength] = " " + file.Length.ToString();
+                response.getHeaders()[HttpHeaders.ContentType] = " " + MIME; 
 
                 return response;
 

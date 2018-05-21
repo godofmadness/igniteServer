@@ -17,10 +17,10 @@ namespace Ignite.src.core.engine.validator
         public static IgniteResponseStatus validate(IgniteRequest request) {
 
             // not valid version
-           // if (!request.getHttpVersion().Equals(validHttpVersion)) {
-             //   Console.WriteLine("IgniteERquestValidatorService@validate | http version not valid, sending 400");
-               // return new IgniteResponseStatus(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST_MESSAGE);
-            //}
+            if (!request.getHttpVersion().Equals(validHttpVersion)) {
+                Console.WriteLine("IgniteERquestValidatorService@validate | http version not valid, sending 400");
+                return new IgniteResponseStatus(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST_MESSAGE);
+            }
 
             if (request.getRoute().Equals("")) {
                 logger.warn("IgniteERquestValidatorService@validate | route not valid, sending 400");
