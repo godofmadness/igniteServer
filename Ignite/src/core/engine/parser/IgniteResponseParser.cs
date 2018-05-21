@@ -31,11 +31,11 @@ namespace Ignite.src.core.engine.parser
 
             // stringify headers
             rawResponse.Append(headersParser.stringify(response.getHeaders()));
-            rawResponse.Append(ParserConstants.REQUEST_HEADERS_DELIMETER);
+            rawResponse.Append(ParserConstants.REQUEST_META_DELIMETER);
 
             // stringify body
             rawResponse.Append(response.getBody());
-            rawResponse.Append(ParserConstants.EOF);
+            //rawResponse.Append(ParserConstants.EOF);
 
             return rawResponse.ToString();
         }

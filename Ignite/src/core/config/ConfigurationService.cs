@@ -47,8 +47,8 @@ namespace Ignite.src.core.config
 
             foreach (var line in config) {
                 String[] kv = line.Split("=");
-                Console.Write("key {0}", kv[0]);
-                Console.Write("value {0}", kv[1]);
+                //Console.Write("key {0}", kv[0]);
+                //Console.Write("value {0}", kv[1]);
                 serverConfiguration.setProperty(kv[0], kv[1]);
             }
 

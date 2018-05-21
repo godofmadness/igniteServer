@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Ignite.src.core.logger;
 using Ignite.src.core.networkentities;
 
 
@@ -10,6 +11,7 @@ namespace Ignite.src.core.engine.parser {
 
         private HeadersParser headersParser;
         private BodyParser bodyParser;
+        private IgniteLogger logger = new IgniteLogger();
 
         public IgniteRequestParser() {
             headersParser = new HeadersParser();
@@ -20,21 +22,35 @@ namespace Ignite.src.core.engine.parser {
 
 
         public IgniteRequest Parse(String rawRequest) {
-            Console.Write("IgniteRequestParser@Parse | Starting parsing of request {0}", rawRequest);
+            //Console.Write("IgniteRequestParser@Parse | Starting parsing of request {0}", rawRequest);
 
-            String[] partials = rawRequest.Split(ParserConstants.REQUEST_META_DELIMETER);
 
+            String[] hBPartials = rawRequest.Split(ParserConstants.REQUEST_HEADERS_DELIMETER);
+   
+            String[] partials = hBPartials[0].Split(ParserConstants.REQUEST_META_DELIMETER);
+
+            //Console.WriteLine("IgniteRequestParser@Parse | {0}, {1}", hBPartials[0]);
+           // Console.WriteLine("LENGTH {0}", partials[4]);
 
             String[] coreMetaPart = partials[0].Split(" ");
-            String rawHeaders = partials[1].Split(ParserConstants.REQUEST_HEADERS_DELIMETER)[0];
 
-            Console.WriteLine("IgniteRequestParser@Parse | raw core meta part {0}, {1}, {2}", coreMetaPart[0], coreMetaPart[1], coreMetaPart[2]);
-           
-            Console.WriteLine("IgniteRequestParser@Parse | headers part {0}", rawHeaders);
+            StringBuilder rawHeaders = new StringBuilder();
+            for (int i= 1; i < partials.Length; i++)
+            {
+                rawHeaders.Append(partials[i]);
+
+                if (partials.Length - 1 != i) {
+                    rawHeaders.Append(HeadersParser.HEADERS_DELIMETER);
+                }
+            }
+
+            logger.debug("IgniteRequestParser@Parse | raw core meta part {0}, {1}, {2}", coreMetaPart[0], coreMetaPart[1], coreMetaPart[2]);
+
+            logger.debug("IgniteRequestParser@Parse | headers part \n{0}", rawHeaders.ToString());
 
 
-            Dictionary<String, String> headers = headersParser.Parse(rawHeaders);
-            Console.WriteLine("IgniteRequestParser@Parse |  parsed headers {0}", headers);
+            Dictionary<String, String> headers = headersParser.Parse(rawHeaders.ToString());
+            //Console.WriteLine("IgniteRequestParser@Parse |  parsed headers {0}", headers);
 
             IgniteRequest request = IgniteRequestFactory.GetInstance();
             request.setMethod(coreMetaPart[0]);
@@ -45,17 +61,16 @@ namespace Ignite.src.core.engine.parser {
 
             // if get request skip body parsing
             if (!coreMetaPart[0].Equals(HttpMethod.GET)) {
-                String rawBody = partials[1].Split(ParserConstants.REQUEST_HEADERS_DELIMETER)[1];
-                // no body
-                rawBody = rawBody.Split(ParserConstants.EOF)[0];
-                
-                Console.WriteLine("IgniteRequestParser@Parse | body part {0}", rawBody);
+                String rawBody = hBPartials[1];
+
+
+                logger.debug("IgniteRequestParser@Parse | body part {0}", rawBody);
                 Dictionary<String, String> body = bodyParser.Parse(rawBody);
-                Console.WriteLine("IgniteRequestParser@Parse |  parsed body {0}", body);
+                //Console.WriteLine("IgniteRequestParser@Parse |  parsed body {0}", body);
                 request.setBody(body);
             }
 
-            Console.Write("IgniteRequestParser@Parse | created request {0}", request);
+            //Console.Write("IgniteRequestParser@Parse | created request {0}", request);
             return request;
         }
 

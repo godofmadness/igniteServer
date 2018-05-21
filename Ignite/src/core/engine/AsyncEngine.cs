@@ -7,6 +7,7 @@ using Ignite.src.core.engine.parser;
 using Ignite.src.core.networkentities;
 using Ignite.src.core.engine.proccessor;
 using Ignite.src.core.engine.validator;
+using Ignite.src.core.logger;
 
 // State object for reading client data asynchronously  
 public class StateObject {
@@ -25,6 +26,7 @@ public class AsyncEngine {
     public static ManualResetEvent allDone = new ManualResetEvent(false);
     private static IgniteRequestParser requestParser = new IgniteRequestParser();
     private static IgniteResponseParser responseParser = new IgniteResponseParser();
+    private static IgniteLogger logger = new IgniteLogger();
 
 
     public static void StartListening() {
@@ -35,14 +37,12 @@ public class AsyncEngine {
         // The DNS name of the computer  
         // running the listener is "host.contoso.com".  
         IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-        for (int i = 0; i < ipHostInfo.AddressList.Length; i++ ) {
-            Console.WriteLine("IpHostinfo {0}", ipHostInfo.AddressList[i]);
-        }
+       
         IPAddress ipAddress = ipHostInfo.AddressList[2];
-        Console.Write("Server running of ip {0}", ipAddress.MapToIPv4());
+        logger.info("Server running of ip {0}", ipAddress.MapToIPv4());
+        
 
-    
-        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.212"), 11000);
+        IPEndPoint localEndPoint = new IPEndPoint(ipHostInfo.AddressList[2], 11000);
 
         // Create a TCP/IP socket.  
         Socket listener = new Socket(ipAddress.AddressFamily,
@@ -58,7 +58,7 @@ public class AsyncEngine {
                 allDone.Reset();
 
                 // Start an asynchronous socket to listen for connections.  
-                Console.WriteLine("Waiting for a connection...");
+                //Console.WriteLine("Waiting for a connection...");
                 listener.BeginAccept(
                     new AsyncCallback(AcceptCallback),
                     listener);
@@ -103,6 +103,7 @@ public class AsyncEngine {
 
         // Read data from the client socket.   
         int bytesRead = handler.EndReceive(ar);
+        //Console.WriteLine("AsyncEngine@ReadCallback | readed bytes {0}", bytesRead);
 
         // catch every exception on server and send 500 if exception occured
         try  {
@@ -115,56 +116,61 @@ public class AsyncEngine {
                 // Check for end-of-file tag. If it is not there, read   
                 // more data.  
                 content = state.sb.ToString();
-                if (content.IndexOf("<EOF>") > -1)  {
+                //Console.WriteLine("Content | {0}", content);
+
+                // if readed bytes >= BUFFER_SIZE -> read more bytes
+                if (bytesRead != 1024)  {
                     // All the data has been read from the   
                     // client. Display it on the console.  
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
+                    
+
+                    logger.info("AsyncEngine@ReadCallback | Read {0} bytes from socket",
+                        content.Length);
+                    logger.info("AsyncEngine@ReadCallback | Raw Request \n{0}", content);
+
+                  
 
                     IgniteRequest request = requestParser.Parse(content);
                     IgniteResponseStatus status = IgniteRequestValidatorService.validate(request);
 
                     if (status.getCode() != HttpStatus.OK) {
 
-                        Console.WriteLine("AsyncEngine@ReadCallback | request not valid {0}:{1}", status.getCode(), status.getMessage());
+                        logger.warn("AsyncEngine@ReadCallback | request not valid {0}:{1}", status.getCode(), status.getMessage());
                         IgniteResponse failedResponse = IgniteResponseFactory.getInstance(status);
                         String rawResponse = responseParser.stringify(failedResponse);
 
-                        Console.WriteLine("AsyncEngine@ReadCallback | raw response");
-                        Console.WriteLine(rawResponse);
+                        logger.info("\n\nAsyncEngine@ReadCallback | raw response \n {0}", rawResponse);
 
                         Send(handler, rawResponse);
 
 
                     } else {
-                        Console.WriteLine("AsyncEngine@ReadCallback | request valid");
-                        Console.WriteLine("AsyncEngine@ReadCallback | Parsed request {0}", request);
+                        //Console.WriteLine("AsyncEngine@ReadCallback | request valid");
+                        //Console.WriteLine("AsyncEngine@ReadCallback | Parsed request {0}", request);
                         Proccessor proccessor = ProccessorFactory.getInstance();
                         IgniteResponse response = await proccessor.proccess(request);
 
                         String rawResponse = responseParser.stringify(response);
 
-                        Console.WriteLine("AsyncEngine@ReadCallback | raw response");
-                        Console.WriteLine(rawResponse);
+                        logger.info("AsyncEngine@ReadCallback | raw response \n{0}", rawResponse);
 
-                        // Echo the data back to the client.  
                         Send(handler, rawResponse);
                     }
 
-                } else {
+               } else {
                     // Not all data received. Get more.  
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
-                }
+                   new AsyncCallback(ReadCallback), state);
+               }
             }
 
         } catch (Exception e) {
-            Console.WriteLine("AsyncEngine@ReadCallback | Server erorr occured {0}", e);
+            logger.error("AsyncEngine@ReadCallback | Server erorr occured {0}", e);
             IgniteResponse failedResponse = IgniteResponseFactory.getInstance(new IgniteResponseStatus(HttpStatus.SERVER_ERROR, HttpStatus.SERVER_ERROR_MESSAGE));
             String rawResponse = responseParser.stringify(failedResponse);
 
-            Console.WriteLine("AsyncEngine@ReadCallback | raw response");
-            Console.WriteLine(rawResponse);
+            logger.info("AsyncEngine@ReadCallback | raw response \n", rawResponse);
+   
 
             Send(handler, rawResponse);
         }
@@ -189,7 +195,7 @@ public class AsyncEngine {
 
             // Complete sending the data to the remote device.  
             int bytesSent = handler.EndSend(ar);
-            Console.WriteLine("Sent {0} bytes to client.", bytesSent);
+            logger.info("Sent {0} bytes to client.", bytesSent);
 
             handler.Shutdown(SocketShutdown.Both);
             handler.Close();

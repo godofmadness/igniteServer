@@ -9,8 +9,8 @@ namespace Ignite.src.core.engine.parser
 
 
      
-        private String HEADERS_DELIMETER = "\n";
-        private String KV_DELIMETER = ":";
+        public static String HEADERS_DELIMETER = "\r\n";
+        public static String KV_DELIMETER = ":";
 
         public override Dictionary<string, string> GetContainer()
         {

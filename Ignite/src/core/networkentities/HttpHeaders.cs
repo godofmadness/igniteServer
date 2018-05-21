@@ -8,7 +8,7 @@ namespace Ignite.src.core.networkentities
     {
 
         public static String ContentType = "Content-Type";
-        public static String ContentLength = "Content-Length";
+        public static String ContentLength = "Content-length";
         public static String UserAgent = "User-Agent";
         public static String Host = "Host";
         public static String Connection = "Connection";

@@ -4,12 +4,14 @@ using System.Text;
 
 namespace Ignite.src.core.networkentities
 {
-    class MIMEType {
+    class MIMEType
+    {
 
         private readonly static Dictionary<String, String> mimeMapping = new Dictionary<String, String>();
         private readonly static String DEFAULT_MIME_TYPE = "application/octet-stream";
 
-        static MIMEType() {
+        static MIMEType()
+        {
             mimeMapping.Add("txt", "text/plain");
             mimeMapping.Add("html", "text/html");
             mimeMapping.Add("js", "application/javascript");
@@ -18,10 +20,15 @@ namespace Ignite.src.core.networkentities
             mimeMapping.Add("jpg", "image/jpeg");
         }
 
-        public static String getMIMETypeByExtension(String extension) {
-            if (mimeMapping.ContainsKey(extension)) {
+
+        public static String getMIMETypeByExtension(String extension)
+        {
+            if (mimeMapping.ContainsKey(extension))
+            {
                 return mimeMapping[extension];
-            } else {
+            }
+            else
+            {
                 return DEFAULT_MIME_TYPE;
             }
         }
