@@ -31,10 +31,11 @@ namespace Ignite.src.core.engine.validator
                 logger.warn("IgniteERquestValidatorService@validate | no content length header sending 411");
                 return new IgniteResponseStatus(HttpStatus.LENGTH_REQUIRED, HttpStatus.LENGTH_REQUIRED_MESSAGE);
             }
-
+             
+            // not supported method
             if (HttpMethod.getAvalibleMethods().IndexOf(request.getMethod()) == -1) {
-                logger.warn("IgniteERquestValidatorService@validate | not allowed method, sending 405");
-                return new IgniteResponseStatus(HttpStatus.METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED_MESSAGE);
+                logger.warn("IgniteERquestValidatorService@validate | not allowed method, sending 501");
+                return new IgniteResponseStatus(HttpStatus.NOT_IMPLEMENTED, HttpStatus.NOT_IMPLEMENTED_MESSAGE);
             }
 
             Dictionary<String, String> headers = request.getHeaders();

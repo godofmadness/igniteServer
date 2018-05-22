@@ -25,6 +25,8 @@ namespace Ignite.src.core.networkentities
         public static int METHOD_NOT_ALLOWED = 405;
         public static String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
+        public static int NOT_IMPLEMENTED = 501;
+        public static String NOT_IMPLEMENTED_MESSAGE = "Not Implemented";
     
     }
 }
